@@ -2,6 +2,10 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import { Card, CardContent, Typography } from '@mui/material';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+// Register required Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const StockChart = ({ data }) => {
   // Reverse the data to ensure left-to-right rendering
@@ -25,6 +29,7 @@ const StockChart = ({ data }) => {
     maintainAspectRatio: false,
     scales: {
       x: {
+        type: 'category', // Ensures the X-axis uses the "category" scale
         display: true,
         title: {
           display: true,
@@ -37,6 +42,12 @@ const StockChart = ({ data }) => {
           display: true,
           text: 'Price',
         },
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
       },
     },
   };
