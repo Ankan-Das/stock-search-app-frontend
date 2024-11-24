@@ -1,0 +1,107 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Login Container */
+.login-container {
+    background: #ffffff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-container h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333333;
+    font-weight: bold;
+}
+
+/* Form Container */
+.form-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container input {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #cccccc;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.form-container input:focus {
+    border-color: #2575fc;
+}
+
+/* Message Styling */
+.form-container p {
+    margin: 10px 0;
+    color: #ff6b6b;
+    font-size: 14px;
+}
+
+/* Login Button */
+.login-button {
+    padding: 10px 15px;
+    margin-top: 10px;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.login-button:hover {
+    background: linear-gradient(to right, #2575fc, #6a11cb);
+    transform: scale(1.05);
+}
+
+.login-button:active {
+    transform: scale(0.98);
+}
+
+/* Register Button */
+.register-button {
+    padding: 10px 15px;
+    margin-top: 10px;
+    background: linear-gradient(to right, #ff6a00, #ff9000);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.register-button:hover {
+    background: linear-gradient(to right, #ff9000, #ff6a00);
+    transform: scale(1.05);
+}
+
+.register-button:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 20px;
+    }
+}

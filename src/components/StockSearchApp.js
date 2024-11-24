@@ -4,6 +4,7 @@ import SearchBar from './SearchBar';
 import StockDetails from './StockDetails';
 import { Container, Typography, Box, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import './StockSearchApp.css';
 
 const StockSearchApp = () => {
   const [selectedSymbol, setSelectedSymbol] = useState(null);
@@ -39,7 +40,7 @@ const StockSearchApp = () => {
   }
 
   return (
-    <Container>
+    <div className='stock-search-container'>
       <Typography variant="h4" align="center" gutterBottom>
         Stock Search App
       </Typography>
@@ -50,8 +51,8 @@ const StockSearchApp = () => {
       </Box>
       {/* Back Button */}
       <Box marginBottom={2}>
-        <button onClick={() => navigate('/')} style={{ padding: '10px 20px', cursor: 'pointer' }}>
-          Back to Landing Page
+        <button onClick={() => navigate('/home')} style={{ padding: '10px 20px', cursor: 'pointer' }}>
+          Back to Home Page
         </button>
       </Box>
       {/* Search Bar */}
@@ -64,7 +65,7 @@ const StockSearchApp = () => {
           Search for a stock to see details and a price chart.
         </Typography>
       )}
-    </Container>
+    </div>
   );
 };
 

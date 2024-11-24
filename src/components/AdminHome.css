@@ -1,0 +1,71 @@
+
+/* Admin Container */
+.admin-home-container {
+    background: #ffffff;
+    padding: 25px 35px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    width: 100%;
+    max-width: 350px;
+}
+
+/* Header Styles */
+.admin-home-container h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333333;
+    font-weight: bold;
+}
+
+/* Button Base Style */
+.admin-home-container button {
+    padding: 10px 15px;
+    margin-top: 15px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+/* New User Button */
+.new-user-button {
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    color: #ffffff;
+}
+
+.new-user-button:hover {
+    background: linear-gradient(to right, #2575fc, #6a11cb);
+    transform: scale(1.05);
+}
+
+.new-user-button:active {
+    transform: scale(0.98);
+}
+
+/* Logout Button */
+.logout-button {
+    background: linear-gradient(to right, #ff4e50, #f9d423);
+    color: #ffffff;
+    margin-top: 10px;  /* Add some spacing between buttons */
+}
+
+.logout-button:hover {
+    background: linear-gradient(to right, #f9d423, #ff4e50);
+    transform: scale(1.05);
+}
+
+.logout-button:active {
+    transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .admin-home-container {
+        padding: 20px;
+        max-width: 300px;
+    }
+}

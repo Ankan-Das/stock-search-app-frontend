@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, TextField, Typography, Container, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import './LandingPage.css'
 
 const LandingPage = () => {
   const [maxLoss, setMaxLoss] = useState(null);
@@ -54,7 +55,7 @@ const LandingPage = () => {
   };
 
   return (
-    <Container>
+    <div className='landing-page-continer'>
       <Typography variant="h4" align="center" gutterBottom>
         Set Values
       </Typography>
@@ -87,8 +88,15 @@ const LandingPage = () => {
         >
           Go to Stock Search App
         </Button>
+        <button
+            type="button"
+            className="logout-button"
+            onClick={() => navigate('/')}
+        >
+            Logout
+        </button>
       </Box>
-    </Container>
+    </div>
   );
 };
 
