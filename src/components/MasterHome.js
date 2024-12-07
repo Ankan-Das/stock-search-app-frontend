@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { auth, db, deleteChildFromSystem } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import './Home.css';
-
-import { getDoc, doc } from 'firebase/firestore';
-
 import { LogoutUser } from './Logout';
 import { onAuthStateChanged } from 'firebase/auth';
 
-const AdminHome = () => {
+import './Home.css';
+
+function MasterHome() {
     const [userInfo, setUserInfo] = useState({ userId: '', role: '' });
     const [children, setChildren] = useState([]);
     const navigate = useNavigate();
@@ -45,8 +44,8 @@ const AdminHome = () => {
     };
 
     return (
-        <div className="home-container">
-            <h2>Admin Home</h2>
+      <div className="home-container">
+            <h2>Master Home</h2>
             <p>User ID: {userInfo.userId}</p>
             <p>Role: <b>{userInfo.role}</b></p>
             <button
@@ -54,7 +53,7 @@ const AdminHome = () => {
                 className="new-user-button"
                 onClick={() => navigate('/add-user')}
             >
-                Generate new Master Id
+                Generate new User Id
             </button>
             <button
                 type="button"
@@ -64,15 +63,15 @@ const AdminHome = () => {
                 Logout
             </button>
 
-            <h3>Master Ids Created: </h3>
+            <h3>User Ids Created: </h3>
             <div className="children-container" style={{ maxHeight: '200px', overflowY: 'scroll', marginTop: '20px' }}>
                 {children.map((childId, index) => (
                     <div key={childId}>
                         <button
                             key={index}
                             className="child-button"
-                            onClick={() => navigate('/admin-home')}
-                            // style={{ display: 'block', margin: '5px', height: '25px', width: '60%' }}
+                            onClick={() => navigate('/user-portfolio', { state: { childId: childId, userRole: userInfo.role } })}
+                            // style={{ display: 'block', margin: '5px' }}
                         >
                             {childId}
                         </button>
@@ -89,6 +88,6 @@ const AdminHome = () => {
 
         </div>
     );
-};
+}
 
-export default AdminHome;
+export default MasterHome;

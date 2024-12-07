@@ -1,6 +1,5 @@
-
 /* Admin Container */
-.admin-home-container {
+.home-container {
     background: #ffffff;
     padding: 25px 35px;
     border-radius: 10px;
@@ -11,7 +10,7 @@
 }
 
 /* Header Styles */
-.admin-home-container h2 {
+.home-container h2 {
     margin-bottom: 20px;
     font-size: 24px;
     color: #333333;
@@ -19,7 +18,7 @@
 }
 
 /* Button Base Style */
-.admin-home-container button {
+.home-container button {
     padding: 10px 15px;
     margin-top: 15px;
     width: 100%;
@@ -62,9 +61,39 @@
     transform: scale(0.98);
 }
 
+/* Child and Delete Button Styles */
+.home-container .child-button, .home-container .delete-button {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.home-container .children-container > div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.home-container .child-button {
+    flex-grow: 1;
+    text-align: center;
+    padding: 5px 15px;
+    width: 80%;
+}
+
+.home-container .delete-button {
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+    width: 10%;
+    cursor: pointer;
+}
+
 /* Responsive Design */
 @media (max-width: 480px) {
-    .admin-home-container {
+    .home-container {
         padding: 20px;
         max-width: 300px;
     }

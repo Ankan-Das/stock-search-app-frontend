@@ -2,27 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Login.css';
+import { getUserRole } from '../utils';
+import { auth } from '../firebase';
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, onAuthStateChanged } from 'firebase/auth';
 
 
 const API_URL = process.env.REACT_APP_API_BASE_URL;
 
 const Login = () => {
     const [formData, setFormData] = useState({ userId: '', password: ''});
+    const [messageColor, setMessageColor] = useState('');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
     // useEffect(() => {
-    //     const checkIfLoggedIn = async () => {
-    //         try {
-    //             const response = await axios.get(`${API_URL}/check_session`, { withCredentials: true });
-    //             if (response.status === 200 && response.data.logged_in) {
-    //                 navigate('/home');  // Redirect to /home if user is already logged in
-    //             }
-    //         } catch (error) {
-    //             console.error('User not logged in:', error);
-    //         }
-    //     };
-    //     checkIfLoggedIn();
+    //     const initial_role = getUserRole(auth.currentUser.email);
+    //     console.log("CURRENT ROLE: ", initial_role);
+
+    //     if (initial_role === 'user') navigate('/user-home');
+    //     else if (initial_role === 'admin') navigate('/admin-home');
+    //     else if (initial_role === 'master') navigate('/master-home');
     // }, [navigate]);
 
     const handleChange = (e) => {
@@ -31,18 +30,36 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // try {
+        //         await setPersistence(auth, browserLocalPersistence);
+        //     } catch (error) {
+        //         console.error("Error setting persistence: ", error);
+        //         return;
+        //     }
         try {
-            console.log("JUST BEFORE LOGIN");
-            console.log(formData);
-            const response = await axios.post(`${API_URL}/api/auth/login`, formData, { withCredentials: true });
-            setMessage(response.data.message);
-            console.log(response.data);
-            if (response.data.role === "admin") {
-                navigate('/admin-home')
-            } else {
-                navigate('/home')
-            }
+            const email = `${formData.userId}@stocksapp.com`;
+            await signInWithEmailAndPassword(auth, email, formData.password);
+            setMessageColor('green');
+            setMessage("user logged in successfully");
+
+            const role = await getUserRole(auth.currentUser.email);
+
+            if (role === 'user') navigate('/user-home');
+            else if (role === 'admin') navigate('/admin-home');
+            else if (role === 'master') navigate('/master-home');
+
+            // console.log("JUST BEFORE LOGIN");
+            // console.log(formData);
+            // const response = await axios.post(`${API_URL}/api/auth/login`, formData, { withCredentials: true });
+            // setMessage(response.data.message);
+            // console.log(response.data);
+            // if (response.data.role === "admin") {
+            //     navigate('/admin-home')
+            // } else {
+            //     navigate('/home')
+            // }
         } catch (error) {
+            setMessageColor('red');
             setMessage('Invalid credentials');
         };
     };
@@ -54,7 +71,7 @@ const Login = () => {
                 <form onSubmit={ handleSubmit }>
                     <input type='text' name='userId' placeholder='user-0000' onChange={handleChange} required />
                     <input type='password' name='password' placeholder='password' onChange={handleChange} required />
-                    {message && <p>{message}</p>}
+                    {message && <p style={{ color: messageColor }}>{message}</p>}
                     <button className='login-button' type='submit'>Login</button>
                 </form>
             </div>

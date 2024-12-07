@@ -1,0 +1,107 @@
+.portfolio-container {
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+}
+
+.portfolio-table {
+    margin-top: 20px;
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.portfolio-table table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.portfolio-table th, .portfolio-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.portfolio-table th {
+    background-color: #f4f6f9;
+    color: #333;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.portfolio-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.portfolio-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+.portfolio-table td {
+    font-size: 14px;
+    color: #555;
+}
+
+.profit-positive {
+    color: green;
+    font-weight: bold;
+}
+
+.profit-negative {
+    color: red;
+    font-weight: bold;
+}
+
+.sell-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.sell-button:hover {
+    background-color: #e04444;
+}
+
+.sell-button:active {
+    background-color: #c33d3d;
+}
+
+
+
+
+/* trade-more-buttonn */
+.trade-more-button {
+    padding: 10px 15px;
+    margin-top: 10px;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.trade-more-button:hover {
+    background: linear-gradient(to right, #2575fc, #6a11cb);
+    transform: scale(1.05);
+}
+
+.trade-more-button:active {
+    transform: scale(0.98);
+}
