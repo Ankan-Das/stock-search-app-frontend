@@ -1,3 +1,5 @@
+/* UserPortfolio.css */
+
 .portfolio-container {
     padding: 20px;
     max-width: 900px;
@@ -80,28 +82,47 @@
     background-color: #c33d3d;
 }
 
-
-
-
-/* trade-more-buttonn */
 .trade-more-button {
-    padding: 10px 15px;
-    margin-top: 10px;
-    background: linear-gradient(to right, #6a11cb, #2575fc);
-    color: #ffffff;
+    background-color: #4CAF50;
+    color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
+    border-radius: 5px;
+    padding: 10px 15px;
     cursor: pointer;
-    transition: transform 0.3s, background-color 0.3s;
+    font-size: 14px;
+    margin: 10px;
+    transition: background-color 0.3s;
 }
 
 .trade-more-button:hover {
-    background: linear-gradient(to right, #2575fc, #6a11cb);
-    transform: scale(1.05);
+    background-color: #45a049;
 }
 
 .trade-more-button:active {
-    transform: scale(0.98);
+    background-color: #3e8e41;
+}
+
+.flip {
+    display: inline-block;
+    position: relative;
+    perspective: 1000px;
+}
+
+.flip .number {
+    display: inline-block;
+    transform-origin: bottom;
+    transform-style: preserve-3d;
+    animation: flipEffect 0.5s ease-in-out;
+}
+
+@keyframes flipEffect {
+    0% {
+        transform: rotateX(0deg);
+    }
+    50% {
+        transform: rotateX(-90deg);
+    }
+    100% {
+        transform: rotateX(0deg);
+    }
 }

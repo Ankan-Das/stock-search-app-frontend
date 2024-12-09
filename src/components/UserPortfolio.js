@@ -3,12 +3,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
 import { getDoc, doc } from 'firebase/firestore';
 import './UserPortfolio.css';
+import { initializeWebSocket } from './WebSocketHelper';
 
 const UserPortfolio = () => {
     const [portfolio, setPortfolio] = useState({ current_portfolio: [], total: 0 });
+    const [livePrices, setLivePrices] = useState({});
+    const [totalProfit, setTotalProfit] = useState(0);
     const navigate = useNavigate();
     const location = useLocation();
     const { childId, userRole } = location.state || {};
+    const apiKey = "b98b47709df24df0909b3af1f59b55e0"; // Replace with your Twelve Data API key
 
     useEffect(() => {
         const fetchPortfolio = async () => {
@@ -33,6 +37,41 @@ const UserPortfolio = () => {
         fetchPortfolio();
     }, [navigate, childId]);
 
+    useEffect(() => {
+        if (portfolio.current_portfolio.length > 0) {
+            const symbols = portfolio.current_portfolio.map(stock => stock.stock_id);
+
+            const socket = initializeWebSocket(
+                apiKey,
+                symbols,
+                (message) => {
+                    setLivePrices((prevPrices) => ({
+                        ...prevPrices,
+                        [message.symbol]: parseFloat(message.price).toFixed(2),
+                    }));
+                },
+                (err) => {
+                    console.error("WebSocket error:", err);
+                },
+                () => {
+                    console.log("WebSocket closed");
+                }
+            );
+
+            return () => {
+                socket.close();
+            };
+        }
+    }, [portfolio.current_portfolio, apiKey]);
+
+    useEffect(() => {
+        const profit = portfolio.current_portfolio.reduce((total, stock) => {
+            const currentPrice = parseFloat(livePrices[stock.stock_id.split(":")[0]] || stock.current_value);
+            return total + ((currentPrice - stock.buy_value) * stock.units);
+        }, 0);
+        setTotalProfit(profit.toFixed(2));
+    }, [livePrices, portfolio.current_portfolio]);
+
     const handleSell = (stockName) => {
         console.log(`Sell button clicked for stock: ${stockName}`);
         // Add functionality to sell the stock
@@ -41,7 +80,7 @@ const UserPortfolio = () => {
     return (
         <div className="portfolio-container">
             <h2>User Portfolio</h2>
-            <h3>Total Profit: <span className={portfolio.total >= 0 ? 'profit-positive' : 'profit-negative'}>{portfolio.total}</span></h3>
+            <h3>Total Profit: <span className={`flip ${totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}`}><span className="number">{totalProfit}</span></span></h3>
 
             <div className="portfolio-table">
                 <table>
@@ -60,15 +99,15 @@ const UserPortfolio = () => {
                             <tr key={index}>
                                 <td>{stock.stock_id}</td>
                                 <td>{stock.buy_value}</td>
-                                <td>{stock.current_value}</td>
+                                <td className="flip"><span className="number">{livePrices[stock.stock_id.split(":")[0]] || stock.current_value}</span></td>
                                 <td>{stock.units}</td>
                                 <td>
-                                    <span className={ stock.diff >= 0 ? 'profit-positive' : 'profit-negative' }>
-                                    {stock.diff}
+                                    <span className={`flip ${((livePrices[stock.stock_id.split(":")[0]] || stock.current_value) - stock.buy_value) * stock.units >= 0 ? 'profit-positive' : 'profit-negative'}`}>
+                                        <span className="number">{(((livePrices[stock.stock_id.split(":")[0]] || stock.current_value) - stock.buy_value) * stock.units).toFixed(2)}</span>
                                     </span>
                                 </td>
                                 <td>
-                                    <button className="sell-button" onClick={() => handleSell(stock.stockName)}>Sell</button>
+                                    <button className="sell-button" onClick={() => handleSell(stock.stock_id)}>Sell</button>
                                 </td>
                             </tr>
                         ))}

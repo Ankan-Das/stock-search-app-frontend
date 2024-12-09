@@ -81,6 +81,7 @@ const Register = () => {
 
                 // Add it to the list in relationships
                 await addChild(userInfo.userId, data.userId)
+                setMessage('');
 
             } else {
                 setMessageColor('red');
