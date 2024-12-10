@@ -8,7 +8,7 @@ import { initializeWebSocket } from './WebSocketHelper';
 const UserPortfolio = () => {
     const [portfolio, setPortfolio] = useState({ current_portfolio: [], total: 0 });
     const [livePrices, setLivePrices] = useState({});
-    const [totalProfit, setTotalProfit] = useState(0);
+    const [totalProfit, setTotalProfit] = useState("Loading...");
     const navigate = useNavigate();
     const location = useLocation();
     const { childId, userRole } = location.state || {};
@@ -65,11 +65,13 @@ const UserPortfolio = () => {
     }, [portfolio.current_portfolio, apiKey]);
 
     useEffect(() => {
-        const profit = portfolio.current_portfolio.reduce((total, stock) => {
-            const currentPrice = parseFloat(livePrices[stock.stock_id.split(":")[0]] || stock.current_value);
-            return total + ((currentPrice - stock.buy_value) * stock.units);
-        }, 0);
-        setTotalProfit(profit.toFixed(2));
+        if (Object.keys(livePrices).length > 0) {
+            const profit = portfolio.current_portfolio.reduce((total, stock) => {
+                const currentPrice = parseFloat(livePrices[stock.stock_id.split(":")[0]]);
+                return total + ((currentPrice - stock.buy_value) * stock.units);
+            }, 0);
+            setTotalProfit(profit.toFixed(2));
+        }
     }, [livePrices, portfolio.current_portfolio]);
 
     const handleSell = (stockName) => {
@@ -99,11 +101,11 @@ const UserPortfolio = () => {
                             <tr key={index}>
                                 <td>{stock.stock_id}</td>
                                 <td>{stock.buy_value}</td>
-                                <td className="flip"><span className="number">{livePrices[stock.stock_id.split(":")[0]] || stock.current_value}</span></td>
+                                <td className="flip"><span className="number">{livePrices[stock.stock_id.split(":")[0]] || "Loading..."}</span></td>
                                 <td>{stock.units}</td>
                                 <td>
-                                    <span className={`flip ${((livePrices[stock.stock_id.split(":")[0]] || stock.current_value) - stock.buy_value) * stock.units >= 0 ? 'profit-positive' : 'profit-negative'}`}>
-                                        <span className="number">{(((livePrices[stock.stock_id.split(":")[0]] || stock.current_value) - stock.buy_value) * stock.units).toFixed(2)}</span>
+                                    <span className={`flip ${livePrices[stock.stock_id.split(":")[0]] ? (((livePrices[stock.stock_id.split(":")[0]] - stock.buy_value) * stock.units) >= 0 ? 'profit-positive' : 'profit-negative') : ''}`}>
+                                        <span className="number">{livePrices[stock.stock_id.split(":")[0]] ? (((livePrices[stock.stock_id.split(":")[0]] - stock.buy_value) * stock.units).toFixed(2)) : "Loading..."}</span>
                                     </span>
                                 </td>
                                 <td>
