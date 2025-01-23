@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
 import { getDoc, doc } from 'firebase/firestore';
 import './UserPortfolio.css';
-import { initializeWebSocket } from './WebSocketHelper';
 
 const UserPortfolio = () => {
     const [portfolio, setPortfolio] = useState({ current_portfolio: [], total: 0 });
@@ -12,7 +11,7 @@ const UserPortfolio = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { childId, userRole } = location.state || {};
-    const apiKey = "b98b47709df24df0909b3af1f59b55e0"; // Replace with your Twelve Data API key
+    const WS_URL = "ws://localhost:5000/stock-data"; // Replace with your backend WebSocket URL
 
     useEffect(() => {
         const fetchPortfolio = async () => {
@@ -40,29 +39,34 @@ const UserPortfolio = () => {
     useEffect(() => {
         if (portfolio.current_portfolio.length > 0) {
             const symbols = portfolio.current_portfolio.map(stock => stock.stock_id);
+            const socket = new WebSocket(WS_URL);
 
-            const socket = initializeWebSocket(
-                apiKey,
-                symbols,
-                (message) => {
-                    setLivePrices((prevPrices) => ({
-                        ...prevPrices,
-                        [message.symbol]: parseFloat(message.price).toFixed(2),
-                    }));
-                },
-                (err) => {
-                    console.error("WebSocket error:", err);
-                },
-                () => {
-                    console.log("WebSocket closed");
-                }
-            );
+            socket.onopen = () => {
+                // Subscribe to symbols
+                socket.send(JSON.stringify({ action: "subscribe", symbols }));
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                setLivePrices((prevPrices) => ({
+                    ...prevPrices,
+                    [data.symbol]: parseFloat(data.price).toFixed(2),
+                }));
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+
+            socket.onclose = () => {
+                console.log("WebSocket closed");
+            };
 
             return () => {
                 socket.close();
             };
         }
-    }, [portfolio.current_portfolio, apiKey]);
+    }, [portfolio.current_portfolio]);
 
     useEffect(() => {
         if (Object.keys(livePrices).length > 0) {

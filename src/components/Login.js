@@ -38,27 +38,41 @@ const Login = () => {
         //     }
         try {
             const email = `${formData.userId}@stocksapp.com`;
+            await setPersistence(auth, browserLocalPersistence);
             await signInWithEmailAndPassword(auth, email, formData.password);
             setMessageColor('green');
             setMessage("user logged in successfully");
 
-            const role = await getUserRole(auth.currentUser.email);
+            // Wait for `auth.currentUser` to populate and then fetch the role
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const role = await getUserRole(user.email);
 
-            if (role === 'user') navigate('/user-home');
-            else if (role === 'admin') navigate('/admin-home');
-            else if (role === 'master') navigate('/master-home');
+                    // Navigate based on the role
+                    if (role === 'user') navigate('/user-home');
+                    else if (role === 'admin') navigate('/admin-home');
+                    else if (role === 'master') navigate('/master-home');
+                }
+            });
 
-            // console.log("JUST BEFORE LOGIN");
-            // console.log(formData);
-            // const response = await axios.post(`${API_URL}/api/auth/login`, formData, { withCredentials: true });
-            // setMessage(response.data.message);
-            // console.log(response.data);
-            // if (response.data.role === "admin") {
-            //     navigate('/admin-home')
-            // } else {
-            //     navigate('/home')
-            // }
+            // const role = await getUserRole(auth.currentUser.email);
+            // console.log("ROLE: " + role);
+            // if (role === 'user') navigate('/user-home');
+            // else if (role === 'admin') navigate('/admin-home');
+            // else if (role === 'master') navigate('/master-home');
+
+            // // console.log("JUST BEFORE LOGIN");
+            // // console.log(formData);
+            // // const response = await axios.post(`${API_URL}/api/auth/login`, formData, { withCredentials: true });
+            // // setMessage(response.data.message);
+            // // console.log(response.data);
+            // // if (response.data.role === "admin") {
+            // //     navigate('/admin-home')
+            // // } else {
+            // //     navigate('/home')
+            // // }
         } catch (error) {
+            console.error("Error during login: ", error)
             setMessageColor('red');
             setMessage('Invalid credentials');
         };
