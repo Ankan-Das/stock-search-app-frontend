@@ -11,7 +11,7 @@ const UserPortfolio = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { childId, userRole } = location.state || {};
-    const WS_URL = "ws://localhost:5000/stock-data"; // Replace with your backend WebSocket URL
+    const WS_URL = process.env.REACT_APP_API_BASE_URL + "/stock-data"; // Replace with your backend WebSocket URL
 
     useEffect(() => {
         const fetchPortfolio = async () => {
