@@ -11,7 +11,7 @@ const UserPortfolio = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { childId, userRole } = location.state || {};
-    const WS_URL = process.env.REACT_APP_WS_BASE_URL + "/stock-data"; // Replace with your backend WebSocket URL
+    const API_URL = process.env.REACT_APP_API_BASE_URL;
 
     useEffect(() => {
         const fetchPortfolio = async () => {
@@ -38,33 +38,43 @@ const UserPortfolio = () => {
 
     useEffect(() => {
         if (portfolio.current_portfolio.length > 0) {
-            const symbols = portfolio.current_portfolio.map(stock => stock.stock_id);
-            const socket = new WebSocket(WS_URL);
 
-            socket.onopen = () => {
-                // Subscribe to symbols
-                socket.send(JSON.stringify({ action: "subscribe", symbols }));
-            };
+            fetch(API_URL + '/update-subscription', {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symbols: portfolio.current_portfolio.map(stock => stock.stock_id) }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update subscription');
+                }
+                console.log('Subscription updated successfully');
+            })
+            .catch(error => console.error('Error updating subscription:', error));
 
-            socket.onmessage = (event) => {
+
+            // ------- Establish SSE Connection --------------
+            const eventSource = new EventSource(API_URL + '/stock-updates');
+
+            eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                setLivePrices((prevPrices) => ({
-                    ...prevPrices,
-                    [data.symbol]: parseFloat(data.price).toFixed(2),
-                }));
+                console.log(data);
+
+                // Convert array to object with symbols as keys
+                const updatedPrices = data.reduce((acc, stock) => {
+                    acc[stock.symbol] = stock.price;
+                    return acc;
+                }, {});
+
+                setLivePrices((prevPrices) => ({ ...prevPrices, ...updatedPrices }));
             };
 
-            socket.onerror = (error) => {
-                console.error("WebSocket error:", error);
+            eventSource.onerror = () => {
+                console.error('SSE connection failed');
+                eventSource.close();
             };
 
-            socket.onclose = () => {
-                console.log("WebSocket closed");
-            };
-
-            return () => {
-                socket.close();
-            };
+            return () => eventSource.close();
         }
     }, [portfolio.current_portfolio]);
 
