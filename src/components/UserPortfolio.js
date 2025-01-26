@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { db } from '../firebase';
-import { getDoc, doc } from 'firebase/firestore';
 import './UserPortfolio.css';
 
 const UserPortfolio = () => {
-    const [portfolio, setPortfolio] = useState({ current_portfolio: [], total: 0 });
+    const [portfolio, setPortfolio] = useState([]);
     const [livePrices, setLivePrices] = useState({});
     const [totalProfit, setTotalProfit] = useState("Loading...");
     const navigate = useNavigate();
@@ -14,35 +12,35 @@ const UserPortfolio = () => {
     const API_URL = process.env.REACT_APP_API_BASE_URL;
 
     useEffect(() => {
-        const fetchPortfolio = async () => {
+        const fetchPortfolioFromBackend = async () => {
             try {
                 if (!childId) {
                     navigate('/');
                     return;
                 }
 
-                const portfolioDoc = await getDoc(doc(db, 'userPortfolio', childId));
-
-                if (portfolioDoc.exists()) {
-                    setPortfolio(portfolioDoc.data());
-                } else {
-                    console.error("Portfolio not found for user: ", childId);
+                const response = await fetch(`${API_URL}/api/stocks/get_portfolio?user_id=${childId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch portfolio');
                 }
+
+                const data = await response.json();
+                console.log(data);
+                setPortfolio(data.portfolio);
             } catch (error) {
-                console.error("Error fetching portfolio: ", error);
+                console.error("Error fetching portfolio from backend:", error);
             }
         };
 
-        fetchPortfolio();
-    }, [navigate, childId]);
+        fetchPortfolioFromBackend();
+    }, [navigate, childId, API_URL]);
 
     useEffect(() => {
-        if (portfolio.current_portfolio.length > 0) {
-
+        if (portfolio.length > 0) {
             fetch(API_URL + '/update-subscription', {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ symbols: portfolio.current_portfolio.map(stock => stock.stock_id) }),
+                body: JSON.stringify({ symbols: portfolio.map(stock => stock.stock_id) }),
             })
             .then(response => {
                 if (!response.ok) {
@@ -58,7 +56,6 @@ const UserPortfolio = () => {
 
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                console.log(data);
 
                 // Convert array to object with symbols as keys
                 const updatedPrices = data.reduce((acc, stock) => {
@@ -76,17 +73,17 @@ const UserPortfolio = () => {
 
             return () => eventSource.close();
         }
-    }, [portfolio.current_portfolio]);
+    }, [portfolio]);
 
     useEffect(() => {
         if (Object.keys(livePrices).length > 0) {
-            const profit = portfolio.current_portfolio.reduce((total, stock) => {
-                const currentPrice = parseFloat(livePrices[stock.stock_id.split(":")[0]]);
-                return total + ((currentPrice - stock.buy_value) * stock.units);
+            const profit = portfolio.reduce((total, stock) => {
+                const currentPrice = parseFloat(livePrices[stock.stock_id]);
+                return total + ((currentPrice - stock.average_buy_price) * stock.units);
             }, 0);
             setTotalProfit(profit.toFixed(2));
         }
-    }, [livePrices, portfolio.current_portfolio]);
+    }, [livePrices, portfolio]);
 
     const handleSell = (stockName) => {
         console.log(`Sell button clicked for stock: ${stockName}`);
@@ -111,15 +108,15 @@ const UserPortfolio = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {portfolio.current_portfolio.map((stock, index) => (
+                        {portfolio.map((stock, index) => (
                             <tr key={index}>
                                 <td>{stock.stock_id}</td>
-                                <td>{stock.buy_value}</td>
-                                <td className="flip"><span className="number">{livePrices[stock.stock_id.split(":")[0]] || "Loading..."}</span></td>
+                                <td>{stock.average_buy_price}</td>
+                                <td className="flip"><span className="number">{livePrices[stock.stock_id] || "Loading..."}</span></td>
                                 <td>{stock.units}</td>
                                 <td>
-                                    <span className={`flip ${livePrices[stock.stock_id.split(":")[0]] ? (((livePrices[stock.stock_id.split(":")[0]] - stock.buy_value) * stock.units) >= 0 ? 'profit-positive' : 'profit-negative') : ''}`}>
-                                        <span className="number">{livePrices[stock.stock_id.split(":")[0]] ? (((livePrices[stock.stock_id.split(":")[0]] - stock.buy_value) * stock.units).toFixed(2)) : "Loading..."}</span>
+                                    <span className={`flip ${livePrices[stock.stock_id] ? (((livePrices[stock.stock_id] - stock.average_buy_price) * stock.units) >= 0 ? 'profit-positive' : 'profit-negative') : ''}`}>
+                                        <span className="number">{livePrices[stock.stock_id] ? (((livePrices[stock.stock_id] - stock.average_buy_price) * stock.units).toFixed(2)) : "Loading..."}</span>
                                     </span>
                                 </td>
                                 <td>
