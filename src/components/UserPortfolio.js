@@ -6,6 +6,10 @@ const UserPortfolio = () => {
     const [portfolio, setPortfolio] = useState([]);
     const [livePrices, setLivePrices] = useState({});
     const [totalProfit, setTotalProfit] = useState("Loading...");
+    const [showSellModal, setShowSellModal] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [selectedStock, setSelectedStock] = useState(null);
+    const [sellUnits, setSellUnits] = useState(0);
     const navigate = useNavigate();
     const location = useLocation();
     const { childId, userRole } = location.state || {};
@@ -25,7 +29,6 @@ const UserPortfolio = () => {
                 }
 
                 const data = await response.json();
-                console.log(data);
                 setPortfolio(data.portfolio);
             } catch (error) {
                 console.error("Error fetching portfolio from backend:", error);
@@ -37,6 +40,7 @@ const UserPortfolio = () => {
 
     useEffect(() => {
         if (portfolio.length > 0) {
+            // Live price updates logic remains unchanged
             fetch(API_URL + '/update-subscription', {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
@@ -71,7 +75,7 @@ const UserPortfolio = () => {
                 eventSource.close();
             };
 
-            return () => eventSource.close();
+            return () => eventSource.close();            
         }
     }, [portfolio]);
 
@@ -85,9 +89,51 @@ const UserPortfolio = () => {
         }
     }, [livePrices, portfolio]);
 
-    const handleSell = (stockName) => {
-        console.log(`Sell button clicked for stock: ${stockName}`);
-        // Add functionality to sell the stock
+    const handleSellClick = (stock) => {
+        setSelectedStock(stock);
+        setShowSellModal(true);
+    };
+
+    const handleSell = async () => {
+        // Open confirmation modal
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirmSell = async (confirmed) => {
+        if (!confirmed) {
+            // Close all modals if "No" is pressed
+            setShowSellModal(false);
+            setShowConfirmModal(false);
+            return;
+        }
+
+        // Call backend API for selling the stock
+        try {
+            const response = await fetch(`${API_URL}/api/stocks/trade`, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: childId,
+                    stock_id: selectedStock.stock_id,
+                    transaction_type: "sell",
+                    units: sellUnits,
+                    price: livePrices[selectedStock.stock_id]
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to sell stock");
+            }
+
+            // Close modals and reload the page
+            setShowSellModal(false);
+            setShowConfirmModal(false);
+            window.location.reload();
+        } catch (error) {
+            console.error("Error selling stock:", error);
+            setShowSellModal(false);
+            setShowConfirmModal(false);
+        }
     };
 
     return (
@@ -120,16 +166,19 @@ const UserPortfolio = () => {
                                     </span>
                                 </td>
                                 <td>
-                                    <button className="sell-button" onClick={() => handleSell(stock.stock_id)}>Sell</button>
+                                    <button className="sell-button" onClick={() => handleSellClick(stock)}>Sell</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-            
+
             <div>
-                <button className="trade-more-button">Trade More</button>
+                <button 
+                    className="trade-more-button"
+                    onClick={() => navigate('/buy-stocks', { state: { userId: childId } })}
+                >Trade More</button>
             </div>
             <button
                 className="trade-more-button"
@@ -137,6 +186,42 @@ const UserPortfolio = () => {
             >
                 Go Back
             </button>
+
+            {/* Sell Modal */}
+            {showSellModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h3>Sell Stock</h3>
+                        <p>Stock: {selectedStock.stock_id}</p>
+                        <p>Current Value: {livePrices[selectedStock.stock_id]}</p>
+                        <label>
+                            Units to Sell:
+                            <input
+                                type="number"
+                                value={sellUnits}
+                                onChange={(e) => setSellUnits(Number(e.target.value))}
+                                max={selectedStock.units}
+                                min={1}
+                            />
+                        </label>
+                        <button onClick={handleSell}>Sell</button>
+                        <button onClick={() => setShowSellModal(false)}>Cancel</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfirmModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h3>Confirm Sell</h3>
+                        <p>Are you sure you want to sell {sellUnits} units of {selectedStock.stock_id}?</p>
+                        <button onClick={() => handleConfirmSell(true)}>Yes</button>
+                        <button onClick={() => handleConfirmSell(false)}>No</button>
+                    </div>
+                </div>
+            )}
+            
         </div>
     );
 };

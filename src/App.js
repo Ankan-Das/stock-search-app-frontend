@@ -9,6 +9,7 @@ import StockSearchApp from './components/StockSearchApp';
 import MasterHome from './components/MasterHome';
 import UserHome from './components/UserHome';
 import UserPortfolio from './components/UserPortfolio';
+import BuyStocks from './components/BuyStocks';
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/home" element={<LandingPage />} />
         <Route path="/stock-search" element={<StockSearchApp />} />
         <Route path="/add-user" element={<Register />} />
+        <Route path="/buy-stocks" element={<BuyStocks />} />
       </Routes>
     </Router>
   );
