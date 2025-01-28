@@ -79,7 +79,7 @@ const BuyStocks = () => {
                     stock_id: selectedStock.symbol,
                     transaction_type: 'buy',
                     units: units,
-                    price: selectedStock.price, // Assume current price is available in stock object
+                    price: livePrices[selectedStock.symbol] || selectedStock.price, // Use live price or fallback to static price
                 }),
             });
 
