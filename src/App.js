@@ -10,6 +10,7 @@ import MasterHome from './components/MasterHome';
 import UserHome from './components/UserHome';
 import UserPortfolio from './components/UserPortfolio';
 import BuyStocks from './components/BuyStocks';
+import UserTransactions from './components/TransactionPage';
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/stock-search" element={<StockSearchApp />} />
         <Route path="/add-user" element={<Register />} />
         <Route path="/buy-stocks" element={<BuyStocks />} />
+        <Route path="/transaction" element={<UserTransactions />} />
       </Routes>
     </Router>
   );

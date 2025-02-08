@@ -7,9 +7,11 @@ const UserPortfolio = () => {
     const [livePrices, setLivePrices] = useState({});
     const [totalProfit, setTotalProfit] = useState("Loading...");
     const [showSellModal, setShowSellModal] = useState(false);
+    const [showBuyModal, setShowBuyModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [selectedStock, setSelectedStock] = useState(null);
-    const [sellUnits, setSellUnits] = useState(0);
+    const [tradeUnits, setTradeUnits] = useState(0);
+    const [tradeType, setTradeType] = useState("");
     const navigate = useNavigate();
     const location = useLocation();
     const { childId, userRole } = location.state || {};
@@ -40,7 +42,6 @@ const UserPortfolio = () => {
 
     useEffect(() => {
         if (portfolio.length > 0) {
-            // Live price updates logic remains unchanged
             fetch(API_URL + '/update-subscription', {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
@@ -54,14 +55,10 @@ const UserPortfolio = () => {
             })
             .catch(error => console.error('Error updating subscription:', error));
 
-
-            // ------- Establish SSE Connection --------------
             const eventSource = new EventSource(API_URL + '/stock-updates');
 
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-
-                // Convert array to object with symbols as keys
                 const updatedPrices = data.reduce((acc, stock) => {
                     acc[stock.symbol] = stock.price;
                     return acc;
@@ -89,25 +86,24 @@ const UserPortfolio = () => {
         }
     }, [livePrices, portfolio]);
 
-    const handleSellClick = (stock) => {
+    const handleTradeClick = (stock, type) => {
         setSelectedStock(stock);
-        setShowSellModal(true);
+        setTradeType(type);
+        type === "sell" ? setShowSellModal(true) : setShowBuyModal(true);
     };
 
-    const handleSell = async () => {
-        // Open confirmation modal
+    const handleTrade = async () => {
         setShowConfirmModal(true);
     };
 
-    const handleConfirmSell = async (confirmed) => {
+    const handleConfirmTrade = async (confirmed) => {
         if (!confirmed) {
-            // Close all modals if "No" is pressed
             setShowSellModal(false);
+            setShowBuyModal(false);
             setShowConfirmModal(false);
             return;
         }
 
-        // Call backend API for selling the stock
         try {
             const response = await fetch(`${API_URL}/api/stocks/trade`, {
                 method: "POST",
@@ -115,23 +111,24 @@ const UserPortfolio = () => {
                 body: JSON.stringify({
                     user_id: childId,
                     stock_id: selectedStock.stock_id,
-                    transaction_type: "sell",
-                    units: sellUnits,
+                    transaction_type: tradeType,
+                    units: tradeUnits,
                     price: livePrices[selectedStock.stock_id]
                 }),
             });
 
             if (!response.ok) {
-                throw new Error("Failed to sell stock");
+                throw new Error(`Failed to ${tradeType} stock`);
             }
 
-            // Close modals and reload the page
             setShowSellModal(false);
+            setShowBuyModal(false);
             setShowConfirmModal(false);
             window.location.reload();
         } catch (error) {
-            console.error("Error selling stock:", error);
+            console.error(`Error ${tradeType}ing stock:`, error);
             setShowSellModal(false);
+            setShowBuyModal(false);
             setShowConfirmModal(false);
         }
     };
@@ -140,7 +137,12 @@ const UserPortfolio = () => {
         <div className="portfolio-container">
             <h2>User Portfolio</h2>
             <h3>Total Profit: <span className={`flip ${totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}`}><span className="number">{totalProfit}</span></span></h3>
-
+            <div>
+                <button 
+                    className="trade-more-button"
+                    onClick={() => navigate('/transaction', { state: { userId: childId } })}
+                >Transactions</button>
+            </div>
             <div className="portfolio-table">
                 <table>
                     <thead>
@@ -158,15 +160,14 @@ const UserPortfolio = () => {
                             <tr key={index}>
                                 <td>{stock.stock_id}</td>
                                 <td>{stock.average_buy_price}</td>
-                                <td className="flip"><span className="number">{livePrices[stock.stock_id] || "Loading..."}</span></td>
+                                <td>{livePrices[stock.stock_id] || "Loading..."}</td>
                                 <td>{stock.units}</td>
+                                <td>{((livePrices[stock.stock_id] - stock.average_buy_price) * stock.units).toFixed(2)}</td>
                                 <td>
-                                    <span className={`flip ${livePrices[stock.stock_id] ? (((livePrices[stock.stock_id] - stock.average_buy_price) * stock.units) >= 0 ? 'profit-positive' : 'profit-negative') : ''}`}>
-                                        <span className="number">{livePrices[stock.stock_id] ? (((livePrices[stock.stock_id] - stock.average_buy_price) * stock.units).toFixed(2)) : "Loading..."}</span>
-                                    </span>
-                                </td>
-                                <td>
-                                    <button className="sell-button" onClick={() => handleSellClick(stock)}>Sell</button>
+                                    <div className="button-container">
+                                        <button className="sell-button" onClick={() => handleTradeClick(stock, "sell")}>Sell</button>
+                                        <button className="buy-button" onClick={() => handleTradeClick(stock, "buy")}>Buy</button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -187,25 +188,23 @@ const UserPortfolio = () => {
                 Go Back
             </button>
 
-            {/* Sell Modal */}
-            {showSellModal && (
+            {(showSellModal || showBuyModal) && (
                 <div className="modal">
                     <div className="modal-content">
-                        <h3>Sell Stock</h3>
+                        <h3>{tradeType === "sell" ? "Sell Stock" : "Buy Stock"}</h3>
                         <p>Stock: {selectedStock.stock_id}</p>
                         <p>Current Value: {livePrices[selectedStock.stock_id]}</p>
                         <label>
-                            Units to Sell:
+                            Units to {tradeType}: 
                             <input
                                 type="number"
-                                value={sellUnits}
-                                onChange={(e) => setSellUnits(Number(e.target.value))}
-                                max={selectedStock.units}
+                                value={tradeUnits}
+                                onChange={(e) => setTradeUnits(Number(e.target.value))}
                                 min={1}
                             />
                         </label>
-                        <button onClick={handleSell}>Sell</button>
-                        <button onClick={() => setShowSellModal(false)}>Cancel</button>
+                        <button onClick={handleTrade}>{tradeType}</button>
+                        <button onClick={() => tradeType === "sell" ? setShowSellModal(false) : setShowBuyModal(false)}>Cancel</button>
                     </div>
                 </div>
             )}
@@ -215,13 +214,13 @@ const UserPortfolio = () => {
                 <div className="modal">
                     <div className="modal-content">
                         <h3>Confirm Sell</h3>
-                        <p>Are you sure you want to sell {sellUnits} units of {selectedStock.stock_id}?</p>
-                        <button onClick={() => handleConfirmSell(true)}>Yes</button>
-                        <button onClick={() => handleConfirmSell(false)}>No</button>
+                        <p>Are you sure you want to sell {tradeUnits} units of {selectedStock.stock_id}?</p>
+                        <button onClick={() => handleConfirmTrade(true)}>Yes</button>
+                        <button onClick={() => handleConfirmTrade(false)}>No</button>
                     </div>
                 </div>
             )}
-            
+
         </div>
     );
 };
